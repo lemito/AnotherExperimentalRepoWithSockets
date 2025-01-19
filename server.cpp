@@ -27,11 +27,14 @@ class server {
   sockaddr_in __address;
 
  public:
-  server() {
+  server(std::string adress = std::string("127.0.0.1"), int port = 8080) {
     __sockfd = socket(AF_INET,      // IPv4
                       SOCK_STREAM,  // TCP
                       0             // default
     );
+    __address.sin_family = AF_INET;
+    __address.sin_addr.s_addr = inet_addr(adress.c_str());
+    __address.sin_port = htons(port);
   };
   ~server() {
 #ifdef _WIN32
