@@ -95,7 +95,7 @@ int main() {
   server meow;
   meow.runServer();
   char buffer[1024];
-  meow.readToBuffer<std::size(buffer)>(&buffer);
-  
+  meow.sendFromBuffer<std::size(buffer)>(&buffer);
+
   return 0;
 }
