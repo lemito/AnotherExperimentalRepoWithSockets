@@ -1,9 +1,9 @@
 #ifndef _SERVER_H
 #define _SERVER_H
 
+#include <cstring>
 #include <iostream>
 #include <string>
-#include <cstring>
 
 #ifdef __linux__
 #include <arpa/inet.h>
@@ -83,7 +83,7 @@ class server {
     std::cout << "Server starting..." << std::endl;
 
     if ((_conn = accept(_sockfd, reinterpret_cast<sockaddr*>(&_address),
-                        reinterpret_cast<socklen_t*>(&_address_size)) < 0)) {
+                        reinterpret_cast<socklen_t*>(&_address_size))) < 0) {
       std::cerr << "Error accepting conection" << std::endl;
       throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
@@ -101,14 +101,14 @@ class server {
   template <size_t buf_siz>
   void readToBuffer(char (*buf)[buf_siz]) const {
     int status;
-    if (-1 == (status = read(_conn, buf, buf_siz))) {
+    if ((status = read(_conn, *buf, buf_siz)) == -1) {
       throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
   template <size_t buf_siz>
   void sendFromBuffer(char const (*buf)[buf_siz]) const {
     int status;
-    if (-1 == (status = send(_conn, buf, buf_siz, 0))) {
+    if ((status = send(_conn, *buf, buf_siz, 0)) == -1) {
       throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
