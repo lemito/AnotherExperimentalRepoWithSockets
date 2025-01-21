@@ -3,5 +3,5 @@ project(AnotherExperimentalRepoWithSockets)
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(SERVER
-    server.cpp)
+add_executable(SERVER server.hpp server.cpp)
+add_executable(CLIENT client.hpp client.cpp)
