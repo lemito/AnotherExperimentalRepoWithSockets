@@ -2,12 +2,12 @@
 
 int main() {
   try {
+    char buffer[1024] = "meow";
     server meow;
     meow.runServer();
-    std::cout << "Meow. Server are runned" << std::endl;
-    char buffer[1024] = "meow";
+    std::cout << "Meow. Server are runned " << buffer << std::endl;
     meow.sendFromBuffer<std::size(buffer)>(&buffer);
-    meow.stopServer();
+    // meow.stopServer();
   } catch (const std::exception& e) {
     std::cerr << e.what() << '\n';
   }
