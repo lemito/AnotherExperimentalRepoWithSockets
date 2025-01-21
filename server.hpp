@@ -1,5 +1,5 @@
 #ifndef _SERVER_H
-#define	_SERVER_H
+#define _SERVER_H
 
 #include <iostream>
 #include <string>
@@ -63,17 +63,21 @@ class server {
       throw;
     }
   };
+
   ~server() {
+    if (-1 != _conn && -1 != _sockfd) {
 #ifdef _WIN32
-    closesocket(_conn);
-    closesocket(_sockfd);
+      closesocket(_conn);
+      closesocket(_sockfd);
 #endif  // _WIN32
 
 #ifdef __linux__
-    close(_conn);
-    close(_sockfd);
+      close(_conn);
+      close(_sockfd);
 #endif  // __linux__
+    }
   }
+
   void runServer() {
     std::cout << "Server starting..." << std::endl;
 
@@ -82,6 +86,11 @@ class server {
       std::cerr << "Error accepting conection" << std::endl;
       throw;
     }
+  }
+
+  void stopServer() {
+    this->~server();
+    _conn = _sockfd = -1;  // фладок ручного закрытия сервера
   }
 
   void readToBuffer(std::string& buf) const {}
