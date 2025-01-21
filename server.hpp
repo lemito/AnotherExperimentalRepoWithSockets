@@ -1,3 +1,6 @@
+#ifndef _SERVER_H
+#define	_SERVER_H
+
 #include <iostream>
 #include <string>
 
@@ -99,11 +102,4 @@ class server {
   }
 };
 
-int main() {
-  server meow;
-  meow.runServer();
-  char buffer[1024];
-  meow.sendFromBuffer<std::size(buffer)>(&buffer);
-
-  return 0;
-}
+#endif
