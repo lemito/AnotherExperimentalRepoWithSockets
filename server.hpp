@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #ifdef __linux__
 #include <arpa/inet.h>
@@ -42,7 +43,7 @@ class server {
     );
     if (_sockfd < 0) {
       std::cerr << "Error creating socket" << std::endl;
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     } else {
       std::cout << "Socket created" << std::endl;
     }
@@ -54,13 +55,13 @@ class server {
     if (-1 == bind(_sockfd, reinterpret_cast<sockaddr*>(&_address),
                    sizeof(_address))) {
       std::cerr << "Error binding socket and address" << std::endl;
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
 
     if (-1 == listen(_sockfd, SOMAXCONN)) {
       std::cerr << "Error listening socket with SOMAXCONN = " << SOMAXCONN
                 << std::endl;
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   };
 
@@ -84,7 +85,7 @@ class server {
     if ((_conn = accept(_sockfd, reinterpret_cast<sockaddr*>(&_address),
                         reinterpret_cast<socklen_t*>(&_address_size)) < 0)) {
       std::cerr << "Error accepting conection" << std::endl;
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
 
@@ -101,14 +102,14 @@ class server {
   void readToBuffer(char (*buf)[buf_siz]) const {
     int status;
     if (-1 == (status = read(_conn, buf, buf_siz))) {
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
   template <size_t buf_siz>
   void sendFromBuffer(char const (*buf)[buf_siz]) const {
     int status;
     if (-1 == (status = send(_conn, buf, buf_siz, 0))) {
-      throw;
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
 };
