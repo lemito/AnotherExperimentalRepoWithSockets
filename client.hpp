@@ -4,17 +4,23 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include <cstring>
+#include <stdexcept>
 #include <string>
 
 class client {
  public:
   client(const std::string &adress = std::string("127.0.0.1"),
          int port = 8080) {
-    if ((socket(_clientfd, SOCK_STREAM, 0)) == -1) {
-      throw;
+    _clientfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_clientfd == -1) {
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
     _addr.sin_family = AF_INET;
-    _addr.sin_addr.s_addr = inet_addr(adress.c_str());
+    if (inet_pton(AF_INET, adress.c_str(), &_addr.sin_addr) <= 0) {
+      close(_clientfd);
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
+    }
     _addr.sin_port = htons(port);
   }
   client(client &&) = delete;
@@ -22,10 +28,9 @@ class client {
   client &operator=(client &&) = delete;
   client &operator=(const client &) = delete;
   void client_connect() {
-    int status;
-    if ((status = connect(_clientfd, (struct sockaddr *)&_addr,
-                          sizeof(_addr))) == -1) {
-      throw;
+    int status = connect(_clientfd, (struct sockaddr *)&_addr, sizeof(struct sockaddr));
+    if (status == -1) {
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
   ~client() { close(_clientfd); };
@@ -37,21 +42,21 @@ class client {
   template <size_t buf_siz>
   void readToBuffer(char (*buf)[buf_siz]) const {
     int status;
-    if (-1 == (status = read(_clientfd, buf, buf_siz))) {
-      throw;
+    if (-1 == (status = read(_clientfd, *buf, buf_siz))) {
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
   template <size_t buf_siz>
   void sendFromBuffer(char const (*buf)[buf_siz]) const {
     int status;
-    if (-1 == (status = send(_clientfd, buf, buf_siz, 0))) {
-      throw;
+    if (-1 == (status = send(_clientfd, *buf, buf_siz, 0))) {
+      throw std::runtime_error("Failed : " + std::string(strerror(errno)));
     }
   }
 
  private:
-  int _clientfd;
-  struct sockaddr_in _addr;
+  int _clientfd{-1};
+  struct sockaddr_in _addr {};
 };
 
 #endif
