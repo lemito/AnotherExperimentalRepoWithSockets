@@ -7,60 +7,95 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#endif  // linux
+#endif  // __linux__
 
 #ifdef _WIN32
+#pragma comment(lib, "Ws2_32.lib")
+
 #include <winsock2.h>
 #endif  // _WIN32
 
 class server {
- private:
 #ifdef _WIN32  // for win
-  SOCKET __sockfd;
+  SOCKET _sockfd;
+  SOCKET _conn;
 #endif  // _WIN32
 
 #ifdef __linux__  // for linux
-  int __sockfd;
-#endif  // linux
+  int _sockfd;
+  int _conn;
+#endif  // __linux__
 
   // просто поля
-  sockaddr_in __address;
+  sockaddr_in _address{};
+  size_t _address_size = sizeof(_address);
 
  public:
-  server(std::string adress = std::string("127.0.0.1"), int port = 8080) {
-    __sockfd = socket(AF_INET,      // IPv4
-                      SOCK_STREAM,  // TCP
-                      0             // default
+  explicit server(const std::string& adress = std::string("127.0.0.1"),
+                  int port = 8080) {
+    _sockfd = socket(AF_INET,      // IPv4
+                     SOCK_STREAM,  // TCP
+                     0             // default
     );
-    if (__sockfd < 0) {
+    if (_sockfd < 0) {
       std::cerr << "Error creating socket" << std::endl;
       throw;
     } else {
       std::cout << "Socket created" << std::endl;
     }
-    __address.sin_family = AF_INET;
-    __address.sin_addr.s_addr = inet_addr(adress.c_str());
-    __address.sin_port = htons(port);
 
-    if (-1 == bind(__sockfd, (sockaddr*)&__address, sizeof(__address))) {
+    _address.sin_family = AF_INET;
+    _address.sin_addr.s_addr = inet_addr(adress.c_str());
+    _address.sin_port = htons(port);
+
+    if (-1 == bind(_sockfd, reinterpret_cast<sockaddr*>(&_address),
+                   sizeof(_address))) {
       std::cerr << "Error binding socket and address" << std::endl;
       throw;
     }
 
-    if (-1 == listen(__sockfd, SOMAXCONN)) {
-      std::cerr << "Error listening socket with SOMAXCONN = " << SOMAXCONN << std::endl;
+    if (-1 == listen(_sockfd, SOMAXCONN)) {
+      std::cerr << "Error listening socket with SOMAXCONN = " << SOMAXCONN
+                << std::endl;
       throw;
     }
   };
   ~server() {
 #ifdef _WIN32
-    closesocket(__sockfd);
+    closesocket(_conn);
+    closesocket(_sockfd);
 #endif  // _WIN32
 
 #ifdef __linux__
-    close(__sockfd);
-#endif  // linux
-  };
+    close(_conn);
+    close(_sockfd);
+#endif  // __linux__
+  }
+  void runServer() {
+    std::cout << "Server starting..." << std::endl;
+
+    if ((_conn = accept(_sockfd, reinterpret_cast<sockaddr*>(&_address),
+                        reinterpret_cast<socklen_t*>(&_address_size)) < 0)) {
+      std::cerr << "Error accepting conection" << std::endl;
+      throw;
+    }
+  }
+
+  void readToBuffer(std::string& buf) const {}
+  void sendFromBuffer(const std::string& buf) const {}
+  void readToBuffer(char** buf) const {}
+  void sendFromBuffer(const char* buf) const {}
+  template <size_t buf_siz>
+  void readToBuffer(char (*)[buf_siz]) const {}
+  template <size_t buf_siz>
+  void sendFromBuffer(char (*)[buf_siz]) const {}
 };
 
-int main(void) { return 0; }
+int main() {
+  server meow;
+  meow.runServer();
+  char buffer[1024];
+  meow.readToBuffer<std::size(buffer)>(&buffer);
+  
+  return 0;
+}
