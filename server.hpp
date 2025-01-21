@@ -99,12 +99,14 @@ class server {
   void sendFromBuffer(const char* buf) const {}
   template <size_t buf_siz>
   void readToBuffer(char (*buf)[buf_siz]) const {
+    int status;
     if (-1 == (status = read(_conn, buf, buf_siz))) {
       throw;
     }
   }
   template <size_t buf_siz>
   void sendFromBuffer(char const (*buf)[buf_siz]) const {
+    int status;
     if (-1 == (status = send(_conn, buf, buf_siz, 0))) {
       throw;
     }
